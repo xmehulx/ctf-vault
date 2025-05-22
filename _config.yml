@@ -19,10 +19,10 @@
 text_skin: dark # "default" (default), "dark", "forest", "ocean", "chocolate", "orange"
 highlight_theme: default # "default" (default), "tomorrow", "tomorrow-night", "tomorrow-night-eighties", "tomorrow-night-blue", "tomorrow-night-bright"
 url     : https://xmehulx.github.io # the base hostname & protocol for your site e.g. https://www.someone.com
-baseurl : /thm-writeups # does not include hostname
-title   : TryHackMe Writeups
+baseurl : /ctf-vault # does not include hostname
+title   : CTF Vault 
 description: > # this means to ignore newlines until "Language & timezone"
-  Writeups of THM rooms and challenges
+  Writeups of challenges from various platforms.
 
 
 ## => Language and Timezone
@@ -49,7 +49,7 @@ author:
 
 ## => GitHub Repository (if the site is hosted by GitHub)
 ##############################
-repository: xmehulx/thm-writeups
+repository: xmehulx/ctf-vault
 repository_tree: master
 
 
@@ -175,7 +175,7 @@ analytics:
 ##############################
 markdown    : kramdown
 highlighter : rouge
-permalink   : date
+permalink   : /:title #date
 
 exclude:
   - CHANGELOG.md

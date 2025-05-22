@@ -59,6 +59,7 @@ html,
 }
 
 .page__aside {
+  font-size: 5rem;
   .toc-aside {
     padding: map-get($spacers, 5) 0 map-get($spacers, 3) map-get($spacers, 5);
   }
