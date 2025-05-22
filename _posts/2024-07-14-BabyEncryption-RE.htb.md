@@ -130,4 +130,4 @@ decryption(encoded)
 
 And this gives us the decrypted message as well!
 
-![Image](/writeups/assets/images/articles/bb.png){:.rounded}
+![Image](/ctf-vault/assets/images/articles/bb.png){:.rounded}
