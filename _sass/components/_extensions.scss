@@ -19,16 +19,16 @@
 }
 
 .extensions--video {
-  padding-top: math.div(315, 560);
+  padding-top: 315 / 560;
 }
 
 .extensions--slide {
-  padding-top: math.div(487, 599);
+  padding-top: 487 / 599;
 }
 
 .extensions--demo {
   min-height: 340px;
-  padding-top: math.div(315, 560);
+  padding-top: 315 / 560;
 }
 
 .extensions--audio {
