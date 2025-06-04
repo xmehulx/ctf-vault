@@ -158,7 +158,7 @@ This function initially defines a lot of variables, then assigns the `input` lis
 
 ### Checking duck_attack()
 
-Remember we came across `duck_attack()` function earlier? Upon loading it, we find that this function is the one that opens the flag and prints the file. Okay so from this  we can assume we have to somehow execute this function.
+Remember we came across `duck_attack()` function earlier? Upon loading it, we find that this function is the one that opens the flag and prints the file. Okay so from this we can assume we have to somehow execute this function.
 
 ```c
 void duck_attack(void)
@@ -196,9 +196,9 @@ Let's run and debug the application with GDB
 ## Post Analysis Notes
 
 There are few issues and takeaways with the above code:
-1. The first `read()` function is reading 102 bytes into `input` but the variable is only assigned to use 32 bytes. This is why we were able to enter 102 bytes during our [Fuzzing](#fuzzing)
+1. The [first read()](#first-read) function is reading 102 bytes into `input` but the variable is only assigned to use 32 bytes. This is why we were able to enter 102 bytes during our [Fuzzing](#fuzzing)
 2. The `printf()` statement is printing the data present 32 bytes after the `pcVar1` variable for some reason.
-3. The second `read()` statement is storing 102 bytes of stdin into the address of `local_68`.
+3. The [second read()](#second-read) statement is storing 102 bytes of stdin into the address of `local_68`.
 
 But most importantly, can we reach the `duck_attack()` and get the flag printed with the current flow?
 
