@@ -18,6 +18,20 @@
 <link rel="apple-touch-img/logo" sizes="72x72" href="https://xmehulx.github.io/ctf-vault/assets/mstile-70x70.png">
 <link rel="apple-touch-img/logo" sizes="114x114" href="https://xmehulx.github.io/ctf-vault/assets/mstile-144x144.png">
 
+    <!-- Open Graphs -->
+<meta property="og:image" content="https://xmehulx.github.io/terminal/assets/android-chrome-512x512.png">
+<meta property="og:description" content="{%- if page.excerpt -%}{{ page.excerpt | strip_html | strip_newlines | strip | truncate: 160 }}{%- else -%}{{ site.description }}{%- endif -%}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{%- if page.title -%}{{ page.title }}{%- else -%}{{ site.title }}{%- endif -%}">
+<meta property="og:url" content="{%- include snippets/page-url.html -%}">
+<!-- Twitter cards -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="0x__shell">
+<meta name="twitter:creator" content="@0x__shell">
+<meta name="twitter:title" content="{%- if page.title -%}{{ page.title }}{%- else -%}{{ site.title }}{%- endif -%}">
+<meta name="twitter:description" content="{%- if page.excerpt -%}{{ page.excerpt }}{%- else -%}{{ site.description }}{%- endif -%}">
+<meta name="twitter:image" content="https://xmehulx.github.io/terminal/assets/android-chrome-512x512.png">
+
 {%- include snippets/prepend-baseurl.html path='/assets/css/main.css' -%}
 <link rel="stylesheet" href="{{ __return }}">
 
