@@ -109,6 +109,10 @@
       }
     }
   }
+  .keyword {
+    font-weight: bold;
+    color: #ff00ff;
+  }
   figure.highlight {
     &::before {
       display: block;

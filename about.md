@@ -27,7 +27,7 @@ key: page-about
 ---
 <div class="grid">
   <div class="cell cell--3"><img class="image image--lg" src="https://xmehulx.github.io/assets/img/me.jpg" style="border-radius:150px;-moz-border-radius:150px;-webkit-border-radius:150px;box-shadow: 0px 6px 5px #555;-moz-box-shadow: 0px 6px 5px #555;-webkit-box-shadow: 0px 6px 5px #555;border:2px solid;"/></div>
-  <div class="cell cell--auto p-4">Mehul is an graduate student majoring in IT Security, who is currently preparing for his CPTS certification. He writes articles on varied topics pertaining to IT security domain. During his free time, he is a photographer and a gamer. He's looking for internship opportunities as a Penetration Tester, Security Analyst and/or related fields to enhance his skills and become a contributing member of society.</div>
+  <div class="cell cell--auto p-4">Mehul is a graduate student majoring in IT Security, who is currently preparing for his CPTS certification. He writes articles on varied topics pertaining to IT security domain. During his free time, he is a photographer and a gamer. He's looking for full-time opportunities in red/blue teams to enhance his skills and become a contributing member of society.</div>
 </div>
 
 
