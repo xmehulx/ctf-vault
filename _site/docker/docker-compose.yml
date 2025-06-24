@@ -4,7 +4,7 @@ services:
   jekyll-text-theme_dev:
     image: ruby:3.2  # or whatever base image matches your system
     environment:
-      - JEKYLL_ENV=development
+      - JEKYLL_ENV=production #development
     ports:
       - "4000:4000"
     container_name: jekyll-TeXt-theme_default
