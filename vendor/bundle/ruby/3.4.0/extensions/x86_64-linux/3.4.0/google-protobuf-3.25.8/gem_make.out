@@ -1,0 +1,107 @@
+current directory: /home/mehul/Github/ctf-vault/vendor/bundle/ruby/3.4.0/gems/google-protobuf-3.25.8/ext/google/protobuf_c
+/usr/bin/ruby -I/usr/share/rubygems extconf.rb
+creating Makefile
+
+current directory: /home/mehul/Github/ctf-vault/vendor/bundle/ruby/3.4.0/gems/google-protobuf-3.25.8/ext/google/protobuf_c
+make DESTDIR\= sitearchdir\=./.gem.20250623-27532-q8bhyp sitelibdir\=./.gem.20250623-27532-q8bhyp clean
+rm -f 
+rm -fr protobuf_c.so false protobuf.o convert.o defs.o message.o repeated_field.o map.o ruby-upb.o wrap_memcpy.o naive.o range2-neon.o range2-sse.o shared_convert.o shared_message.o *.bak mkmf.log .*.time
+
+current directory: /home/mehul/Github/ctf-vault/vendor/bundle/ruby/3.4.0/gems/google-protobuf-3.25.8/ext/google/protobuf_c
+make DESTDIR\= sitearchdir\=./.gem.20250623-27532-q8bhyp sitelibdir\=./.gem.20250623-27532-q8bhyp
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o protobuf.o -c protobuf.c
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o convert.o -c convert.c
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o defs.o -c defs.c
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o message.o -c message.c
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o repeated_field.o -c repeated_field.c
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o map.o -c map.c
+map.c: In function ‘Map_delete’:
+map.c:447:26: warning: passing argument 1 of ‘upb_Map_Delete’ discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
+  447 |   if (upb_Map_Delete(self->map, key_upb, &val_upb)) {
+      |                      ~~~~^~~~~
+In file included from defs.h:12,
+                 from protobuf.h:29,
+                 from convert.h:11,
+                 from map.c:8:
+ruby-upb.h:1772:38: note: expected ‘upb_Map *’ but argument is of type ‘const upb_Map *’
+ 1772 | UPB_API bool upb_Map_Delete(upb_Map* map, upb_MessageValue key,
+      |                             ~~~~~~~~~^~~
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o ruby-upb.o -c ruby-upb.c
+In file included from /usr/include/string.h:548,
+                 from ruby-upb.h:473,
+                 from ruby-upb.c:2:
+In function ‘memcpy’,
+    inlined from ‘_upb_map_fromvalue’ at ruby-upb.h:1888:5,
+    inlined from ‘upb_Map_Delete’ at ruby-upb.c:5563:12:
+/usr/include/bits/string_fortified.h:29:10: warning: ‘v.val’ may be used uninitialized [-Wmaybe-uninitialized]
+   29 |   return __builtin___memcpy_chk (__dest, __src, __len,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   30 |                                  __glibc_objsize0 (__dest));
+      |                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~
+ruby-upb.c: In function ‘upb_Map_Delete’:
+ruby-upb.c:5561:13: note: ‘v.val’ was declared here
+ 5561 |   upb_value v;
+      |             ^
+In function ‘upb_value_getconstptr’,
+    inlined from ‘upb_DefPool_FindExtensionByMiniTable’ at ruby-upb.c:7879:10:
+ruby-upb.h:1482:12: warning: ‘v.val’ may be used uninitialized [-Wmaybe-uninitialized]
+ 1482 |     return (type_t)(converter)val.val;                               \
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+ruby-upb.c: In function ‘upb_DefPool_FindExtensionByMiniTable’:
+ruby-upb.c:7876:13: note: ‘v.val’ was declared here
+ 7876 |   upb_value v;
+      |             ^
+In function ‘upb_value_getconstptr’,
+    inlined from ‘upb_DefPool_FindExtensionByMiniTable’ at ruby-upb.c:7879:10,
+    inlined from ‘upb_DefPool_FindExtensionByNumber’ at ruby-upb.c:7888:16:
+ruby-upb.h:1482:12: warning: ‘v.val’ may be used uninitialized [-Wmaybe-uninitialized]
+ 1482 |     return (type_t)(converter)val.val;                               \
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+ruby-upb.c: In function ‘upb_DefPool_FindExtensionByNumber’:
+ruby-upb.c:7876:13: note: ‘v.val’ was declared here
+ 7876 |   upb_value v;
+      |             ^
+In function ‘upb_value_getconstptr’,
+    inlined from ‘upb_DefPool_FindExtensionByMiniTable’ at ruby-upb.c:7879:10,
+    inlined from ‘upb_Message_Next’ at ruby-upb.c:10211:16:
+ruby-upb.h:1482:12: warning: ‘v.val’ may be used uninitialized [-Wmaybe-uninitialized]
+ 1482 |     return (type_t)(converter)val.val;                               \
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+ruby-upb.c: In function ‘upb_Message_Next’:
+ruby-upb.c:7876:13: note: ‘v.val’ was declared here
+ 7876 |   upb_value v;
+      |             ^
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o wrap_memcpy.o -c wrap_memcpy.c
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o naive.o -c ./third_party/utf8_range/naive.c
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o range2-neon.o -c ./third_party/utf8_range/range2-neon.c
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o range2-sse.o -c ./third_party/utf8_range/range2-sse.c
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o shared_convert.o -c shared_convert.c
+shared_convert.c: In function ‘shared_Msgval_IsEqual’:
+shared_convert.c:39:1: warning: control reaches end of non-void function [-Wreturn-type]
+   39 | }
+      | ^
+shared_convert.c: In function ‘shared_Msgval_GetHash’:
+shared_convert.c:64:1: warning: control reaches end of non-void function [-Wreturn-type]
+   64 | }
+      | ^
+gcc -I. -I/usr/include -I/usr/include/ruby/backward -I/usr/include -I. -I./third_party/utf8_range   -fPIC -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -std=gnu99 -O3 -DNDEBUG -fvisibility=hidden -Wall -Wsign-compare -Wno-declaration-after-statement -m64 -o shared_message.o -c shared_message.c
+shared_message.c: In function ‘shared_Message_Equal’:
+shared_message.c:66:1: warning: control reaches end of non-void function [-Wreturn-type]
+   66 | }
+      | ^
+rm -f protobuf_c.so
+gcc -shared -o protobuf_c.so protobuf.o convert.o defs.o message.o repeated_field.o map.o ruby-upb.o wrap_memcpy.o naive.o range2-neon.o range2-sse.o shared_convert.o shared_message.o -L. -L/usr/lib64 -L. -Wl,-z,relro -Wl,--as-needed  -Wl,-z,pack-relative-relocs -Wl,-z,now -specs=/usr/lib/rpm/redhat/redhat-hardened-ld -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -Wl,--build-id=sha1 -fstack-protector-strong -rdynamic -Wl,-export-dynamic -Wl,--no-as-needed -Wl,-wrap,memcpy -Wl,-z,relro -Wl,--as-needed  -Wl,-z,pack-relative-relocs -Wl,-z,now -specs=/usr/lib/rpm/redhat/redhat-hardened-ld -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -Wl,--build-id=sha1    -m64  -lruby  -lm -lpthread  -lc
+/usr/bin/ld: /tmp/ccpCKG73.ltrans1.ltrans.o: in function `jsonenc_putbytes':
+/usr/include/bits/string_fortified.h:29:(.text+0x45): undefined reference to `__wrap_memcpy'
+/usr/bin/ld: /usr/include/bits/string_fortified.h:29:(.text+0x7d): undefined reference to `__wrap_memcpy'
+/usr/bin/ld: /tmp/ccpCKG73.ltrans1.ltrans.o: in function `upb_Arena_Realloc.lto_priv.0':
+/usr/include/bits/string_fortified.h:29:(.text+0x413b): undefined reference to `__wrap_memcpy'
+/usr/bin/ld: /tmp/ccpCKG73.ltrans1.ltrans.o: in function `upb_strtable_insert':
+/usr/include/bits/string_fortified.h:29:(.text+0x4894): undefined reference to `__wrap_memcpy'
+/usr/bin/ld: /tmp/ccpCKG73.ltrans1.ltrans.o: in function `jsondec_string':
+/usr/include/bits/string_fortified.h:29:(.text+0x6727): undefined reference to `__wrap_memcpy'
+/usr/bin/ld: /tmp/ccpCKG73.ltrans1.ltrans.o:/usr/include/bits/string_fortified.h:29: more undefined references to `__wrap_memcpy' follow
+collect2: error: ld returned 1 exit status
+make: *** [Makefile:269: protobuf_c.so] Error 1
+
+make failed, exit code 2
